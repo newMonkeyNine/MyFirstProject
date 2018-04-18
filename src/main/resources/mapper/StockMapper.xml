@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+        
+<mapper namespace="com.ceway.materials.mapper.storage.StockMapper">
+	
+	<resultMap id="StockMap" type="com.ceway.materials.bean.storage.Stock">
+		<id property="gid" column="stock_id" jdbcType="VARCHAR"/>
+		<result property="companyId" column="company_id" jdbcType="VARCHAR" />
+		<result property="storageLocaId" column="storage_location_id" jdbcType="VARCHAR" />
+		<result property="storageId" column="storage_id" jdbcType="VARCHAR" />
+		<result property="stockProdId" column="stock_product_id" jdbcType="VARCHAR" />
+		<result property="stockNum" column="stock_num" />
+		<result property="projectCode" column="project_code" jdbcType="VARCHAR" />
+		<result property="projectName" column="project_name" jdbcType="VARCHAR" />
+		<result property="delFlag" column="del_flag" />
+		<result property="createDate" column="create_date" />
+		<association property="product" javaType="com.ceway.materials.bean.product.Product">
+			<id property="gid" column="product_id"/>
+			<result property="productCode" column="product_code" jdbcType="VARCHAR" />
+			<result property="productName" column="product_cname" jdbcType="VARCHAR" />
+			<result property="basicUnit" column="basic_unit" jdbcType="VARCHAR" />
+			<result property="amountPrecision" column="amount_precision" jdbcType="INTEGER" />
+			<result property="highStock" column="high_stock" jdbcType="DECIMAL" />
+			<result property="modelType" column="model_type" jdbcType="VARCHAR"/>
+			<result property="lowStock" column="low_stock" jdbcType="DECIMAL" />
+			<result property="safeStock" column="safe_stock" jdbcType="DECIMAL" />
+			<result property="isRecommend" column="is_recommend" jdbcType="VARCHAR" />
+			<result property="easyCode" column="easy_code" jdbcType="VARCHAR" />
+			<result property="keyWord" column="key_word" jdbcType="VARCHAR" />
+			<result property="isUser" column="is_use" jdbcType="INTEGER" />
+			<result property="propertys" column="property" jdbcType="VARCHAR" />
+			<association property="ventor" javaType="com.ceway.materials.bean.ventor.Ventor">
+				<id property="gid" column="ventor_id" jdbcType="VARCHAR"/>
+				<result property="ventorName" column="ventor_name" jdbcType="VARCHAR" />
+			</association>
+			<association property="prodCate" javaType="com.ceway.materials.bean.product.ProductCategory">
+				<id property="gid" column="prod_category_id" jdbcType="VARCHAR" />
+				<result property="categoryName" column="category_name" jdbcType="VARCHAR" />
+			</association>
+			
+			<association property="productFile"
+			javaType="com.ceway.materials.bean.product.ProductFile">
+			<id property="gid" column="product_file_id" jdbcType="VARCHAR" />
+			<result property="fileUrl" column="file_url" jdbcType="VARCHAR" />
+			<association property="prodFileType" javaType="ProductFileType">
+				<id property="gid" column="product_file_type_id"/>
+				<result property="fileTypeName" column="file_type_name" jdbcType="VARCHAR"/>
+				<result property="fileTypeCode" column="file_type_code" jdbcType="VARCHAR"/>
+			</association>
+		</association>
+		</association>
+	</resultMap>
+	
+	<select id="findStockInfo" resultMap="StockMap">
+		select stock_id,company_id,storage_location_id,storage_id,stock_product_id,
+		    stock_num,project_code,project_name,del_flag,create_date
+		    from t_stock where del_flag = 0
+	</select>
+	
+	<insert id="addStockInfo" parameterType="com.ceway.materials.bean.storage.Stock">
+		insert into t_stock (stock_id,company_id,stock_product_id,stock_num,del_flag,create_date)
+				values(#{gid},#{companyId},#{stockProdId},#{stockNum},#{delFlag},#{createDate})
+	</insert>
+	
+	<select id="findStockInfoById" parameterType="java.lang.String" resultMap="StockMap">
+		select ts.stock_id,ts.stock_product_id,ts.stock_num,tp.product_code,tp.product_cname,tp.model,tp.product_cname
+			,tp.model_type,tp.basic_unit,tp.easy_code,tp.amount_precision,tp.high_stock,tp.low_stock,tp.safe_stock,tp.key_word
+			,tp.is_use,tp.is_recommend,tv.ventor_id,tv.ventor_name,tpc.prod_category_id,tpc.category_name
+			,tpf.product_file_id,tpf.file_url,tpft.product_file_type_id,tpft.file_type_code,tpp2.property
+			from t_stock ts
+			left join t_product tp on ts.stock_product_id = tp.product_id 
+			left join t_ventor tv on tv.ventor_id = tp.ventor_id
+			left join t_product_category tpc on tpc.prod_category_id = tp.prod_category_id
+			left join t_product_file tpf on tpf.product_id = tp.product_id 
+			left join t_product_file_type tpft on tpft.product_file_type_id = tpf.product_file_type_id
+		left join (
+			select tpp.product_id , group_concat(tpp.property_value order by tp.sort_no ASC separator '*') as property 
+			from t_product_property tpp 
+			left join t_property tp on tpp.property_id = tp.property_id
+			group by tpp.product_id
+		) tpp2		
+		on tpp2.product_id = tp.product_id
+		where 
+			stock_id = #{gid}
+		and 
+			ts.del_flag = 0
+	</select>
+	
+	<select id="findStockInfoByPage" resultMap="StockMap" parameterType="map">
+		select ts.stock_id,ts.stock_product_id,ts.stock_num,tp.product_id,tp.product_code,tp.product_cname,tp.model_type
+			,tp.basic_unit,tp.easy_code,tp.is_use,tp.is_recommend,tv.ventor_id,tv.ventor_name,tpc.prod_category_id,tpc.category_name
+			,tpf.product_file_id,tpf.file_url,tpft.product_file_type_id,tpft.file_type_code,tpp2.property
+			from t_stock ts
+			left join t_product tp on ts.stock_product_id = tp.product_id 
+			left join t_ventor tv on tv.ventor_id = tp.ventor_id
+			left join t_product_category tpc on tpc.prod_category_id = tp.prod_category_id
+			left join t_product_file tpf on tpf.product_id = tp.product_id 
+			left join t_product_file_type tpft on tpft.product_file_type_id = tpf.product_file_type_id
+		left join (
+			select tpp.product_id , group_concat(tpp.property_value order by tp.sort_no ASC separator '*') as property 
+			from t_product_property tpp 
+			left join t_property tp on tpp.property_id = tp.property_id
+			group by tpp.product_id
+		) tpp2		
+		on tpp2.product_id = tp.product_id
+		where ts.del_flag = 0
+		<if test="selValue != null and selValue != ''">
+		 	and ( tp.product_code like ('%${selValue}%')
+		 	or tp.product_cname like ('%${selValue}%')
+		 	or tp.model_type like ('%${selValue}%')
+		 	or tp.easy_code like ('%${selValue}%')
+		 	or tv.ventor_name like ('%${selValue}%')
+		 )</if>
+		limit #{offset}, #{size}
+	</select>
+	
+	<select id="findStockInfoCount" resultType="java.lang.Integer" parameterType="map">
+		select count(1)
+			from t_stock ts
+			left join t_product tp on ts.stock_product_id = tp.product_id 
+			left join t_ventor tv on tv.ventor_id = tp.ventor_id
+		where ts.del_flag = 0
+		<if test="selValue != null and selValue != ''">
+		 	and ( tp.product_code like ('%${selValue}%')
+		 	or tp.product_cname like ('%${selValue}%')
+		 	or tp.model_type like ('%${selValue}%')
+		 	or tp.easy_code like ('%${selValue}%')
+		 	or tv.ventor_name like ('%${selValue}%')
+		 )</if>
+	</select>
+	
+	<update id="udpateNumByList" parameterType="list">
+		update t_stock 
+			set stock_num = 
+			<foreach collection="list" index="index" open="case stock_id" separator="" close="end" item="item">
+				when #{item.gid} then #{item.stockNum}
+			</foreach>
+		where stock_id in
+			<foreach collection="list" index="index" open="(" separator="," close=")" item="item">
+				#{item.gid}
+			</foreach>
+	 	and del_flag = 0
+	</update>
+	
+	<update id="udpateNumById">
+		update t_stock 
+		set 
+			stock_num = #{num}
+		where
+			stock_id = #{gid}
+		and 
+			del_flag = 0
+	</update>
+	
+</mapper>

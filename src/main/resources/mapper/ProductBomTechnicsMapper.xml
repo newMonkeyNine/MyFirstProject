@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.ceway.materials.mapper.technics.ProductBomTechnicsMapper">
+	<resultMap type="com.ceway.materials.bean.technics.ProductBomTechnics" id="technicsMap">
+		<id property="gid" column="op_id"  jdbcType="VARCHAR" />
+		<result property="opPrice"  column="op_price"  jdbcType="DOUBLE" />
+		
+		<association property="technics" javaType="com.ceway.materials.bean.technics.ProductTechnics">
+			<id property="gid"  column="technicsId"   jdbcType="INTEGER" />
+			<result property="technicsName"   column="technicsName"   jdbcType="VARCHAR"/>
+			<result property="lineId"  column="line_id"  jdbcType="INTEGER" />
+		</association>
+		
+		<collection property="technicsLoss"  resultMap="lossMap" />
+	</resultMap>
+	
+	<resultMap type="com.ceway.materials.bean.technics.ProductBomTechnicsLoss" id="lossMap">
+		<id property="gid"  column="mrl_id" jdbcType="VARCHAR"  />
+		<result property="lossNumber"  column="loss_number"  jdbcType="DOUBLE" />
+		<result property="mrlNumber"  column="mrl_number"  jdbcType="DOUBLE" />
+		
+		<association property="product"  javaType="com.ceway.materials.bean.product.Product">
+			<id property="gid"   column="mrl_product_id"   jdbcType="VARCHAR"/>
+			<result property="productCode"  column="mrl_product_code"  jdbcType="VARCHAR"  />
+			<result property="productName"   column="mrl_product_name"   jdbcType="VARCHAR"/>
+			<result property="propertys"   column="mrl_propertys"   jdbcType="VARCHAR"/>
+			<result property="basicUnit"   column="mrl_basic_unit"   jdbcType="VARCHAR"/>
+		</association>
+	</resultMap>
+
+	<insert id="addBomTechnics"  parameterType="list">
+		insert into t_product_bom_technics(op_id, product_bom_id, del_flag, create_date, create_user_id, technics_id)
+		values
+		<foreach collection="list"  item="item"  index="index"  separator=","  >
+		(#{item.gid, jdbcType=VARCHAR},#{item.productBomId, jdbcType=VARCHAR},#{item.delFlag, jdbcType=INTEGER}
+		,#{item.createDate},#{item.createId, jdbcType=VARCHAR},#{item.technicsId, jdbcType=INTEGER})
+		</foreach>
+	</insert>
+	
+	<update id="updateBomTechnics" parameterType="list">
+		update t_product_bom_technics
+		set del_flag = 
+			<foreach collection="list"  item="item"  index="index"  separator=" "  open="case op_id"  close="end">
+				when #{item.gid, jdbcType=VARCHAR}  then #{item.delFlag, jdbcType=INTEGER}
+			</foreach>
+		where op_id in
+			<foreach collection="list"  item="item"  index="index"  separator=","  open="("  close=")">
+				#{item.gid, jdbcType=VARCHAR}
+			</foreach>
+	</update>
+	
+	<select id="findBomTechnicsInfo" parameterType="map"   resultMap="technicsMap">
+		select tpbt.op_id,IFNULL(tpbt.op_price,0) as op_price, tpt.id as technicsId, tpt.`name` as technicsName, tpt.line_id
+		, ttl.mrl_id, ttl.loss_number, ttl.mrl_number, tp2.product_id as mrl_product_id, tp2.product_cname as mrl_product_name, tp2.product_code as mrl_product_code
+		, tp2.basic_unit as mrl_basic_unit, tpp3.property as mrl_propertys
+		from t_product_bom_technics tpbt 
+		left join t_product_technics tpt on tpbt.technics_id = tpt.id
+		left join (select * from t_technics_loss where del_flag = 0) ttl on tpbt.op_id = ttl.op_id
+		left join t_product tp2 on tp2.product_id = ttl.product_id
+		left join (
+					select tpp.product_id , group_concat(tpp.property_value order by tp.sort_no ASC separator '*') as property 
+					from t_product_property tpp 
+					left join t_property tp on tpp.property_id = tp.property_id
+					group by tpp.product_id
+				) tpp3		
+				on tpp3.product_id = tp2.product_id
+		where tpbt.del_flag = 0
+			<if test="productId != null">
+				and tpbt.product_bom_id = #{productId}
+			</if>
+			<if test="technicsId != null">
+				and tpbt.op_id = #{technicsId}
+			</if>
+		ORDER BY tpt.seq
+	</select>
+</mapper>

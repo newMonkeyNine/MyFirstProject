@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.ceway.materials.mapper.technics.ProductBomTechnicsLossMapper">
+
+	<resultMap type="com.ceway.materials.bean.technics.ProductBomTechnicsLoss"  id="lossMap">
+		<id property="gid"   column="mrl_id"  jdbcType="VARCHAR"   />
+		<result  property="lossNumber"   column="loss_number"   jdbcType="DOUBLE"/>
+		<result  property="mrlNumber"   column="mrl_number"   jdbcType="DOUBLE" />
+		<result  property="opId" column="op_id"   jdbcType="VARCHAR"  />
+		<result property="productId"  column="product_id"  jdbcType="VARCHAR"  />
+	</resultMap>
+
+	<insert id="addTechnicsLoss"  parameterType="list">
+		insert into t_technics_loss(mrl_id, loss_number, mrl_number, del_flag, create_date, create_user_id , op_id, product_id)
+		values
+		<foreach collection="list"  item="item"  index="index"  separator=","  >
+		(#{item.gid, jdbcType=VARCHAR}, #{item.lossNumber, jdbcType=DOUBLE}, #{item.mrlNumber, jdbcType=DOUBLE}, 
+		#{item.delFlag, jdbcType=INTEGER}, #{item.createDate}, #{item.createId, jdbcType=VARCHAR}, 
+		#{item.opId, jdbcType=VARCHAR}, #{item.productId, jdbcType=VARCHAR})
+		</foreach>
+	</insert>
+	
+	<select id="findTechnicsLoss"  parameterType="string"  resultMap="lossMap">
+		select ttl.mrl_id, ttl.loss_number, ttl.mrl_number, ttl.op_id, ttl.product_id from t_technics_loss ttl
+		where ttl.del_flag = 0
+			and ttl.op_id = #{opId}
+	</select>
+	
+	<update id="updateTechnicsLoss"   parameterType="list"   >
+	update t_technics_loss
+			set del_flag = 
+			<foreach collection="list"  item="item"  index="index"  separator=" "  open="case mrl_id"  close="end">
+				when #{item.gid, jdbcType=VARCHAR}  then #{item.delFlag, jdbcType=INTEGER}
+			</foreach>
+			, loss_number =
+			<foreach collection="list"  item="item"  index="index"  separator=" "  open="case mrl_id"  close="end">
+				when #{item.gid, jdbcType=VARCHAR}  then #{item.lossNumber, jdbcType=DOUBLE}
+			</foreach>
+			, mrl_number =
+			<foreach collection="list"  item="item"  index="index"  separator=" "  open="case mrl_id"  close="end">
+				when #{item.gid, jdbcType=VARCHAR}  then #{item.mrlNumber, jdbcType=DOUBLE}
+			</foreach>
+			where mrl_id in
+			<foreach collection="list"  item="item"  index="index"  separator=","  open="("  close=")">
+				#{item.gid, jdbcType=VARCHAR}
+			</foreach>
+	</update>
+	
+	
+	<update id="updateOpPrice"   parameterType="com.ceway.materials.bean.technics.ProductBomTechnics">
+		update t_product_bom_technics set op_price = #{opPrice}
+		where op_id = #{gid}
+	</update>
+</mapper>

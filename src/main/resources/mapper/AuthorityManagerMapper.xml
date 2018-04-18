@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.ceway.materials.mapper.authority.AuthorityManagerMapper">
+
+	<resultMap type="com.ceway.materials.bean.authority.Authority"
+		id="AuthorityMap">
+		<id property="authorityId" column="authority_id" />
+		<result property="authorityName" column="authority_name" />
+		<result property="authorityCode" column="authority_code" />
+		<result property="createTime" column="create_date" />
+	</resultMap>
+
+	<resultMap type="com.ceway.materials.bean.authority.Role"
+		id="RoleMap">
+		<id property="roleId" column="role_id" />
+		<result column="role_name" property="roleName" />
+		<result property="createTime" column="create_date" />
+	</resultMap>
+
+	<resultMap type="com.ceway.materials.bean.authority.UserRole"
+		id="UserRoleMap">
+		<id property="userRoleId" column="user_role_id" />
+		<result property="userId" column="user_id" />
+		<result property="userName" column="user_name" />
+		<association property="role" resultMap="RoleMap" />
+	</resultMap>
+
+	<resultMap type="com.ceway.materials.bean.authority.RoleAuthority" id="RoleAutnMap">
+		<id property="roleAuthorityId" column="role_authority_id"/>
+		<association property="role" resultMap="RoleMap" />
+		<association property="auth" resultMap="AuthorityMap"/>
+	</resultMap>
+
+
+	<sql id="Authority_Column">
+		authority_id,authority_name,authority_code,create_date
+	</sql>
+
+	<sql id="Role_Column">
+		role_id,role_name,create_date
+	</sql>
+	
+	<sql id="UserRole_Column">
+		tur.user_role_id,tur.user_id,tur.user_name,tur.role_id,tr.role_id,tr.role_name
+	</sql>
+
+	<sql id="RoleAuth_Column">
+		tra.role_authority_id,tr.role_id,tr.role_name,ta.authority_id,ta.authority_name,ta.authority_code
+	</sql>
+
+	<insert id="grantRoleToUser" parameterType="com.ceway.materials.bean.authority.UserRole">
+		insert into
+		t_user_role (user_role_id,user_id,user_name,role_id,create_date)
+		values(#{userRoleId},#{userId},#{userName},#{roleId},#{createTime})
+	</insert>
+
+	<select id="RoleUserIsExists" resultType="int">
+		select count(1) from
+		t_user_role
+		where user_id = #{userId}
+		and role_id = #{roleId}
+	</select>
+
+	<update id="deleteRoleUser" parameterType="java.lang.String">
+		update t_user_role set
+		del_flag = 1 where user_role_id = #{id}
+	</update>
+
+	<update id="updateRoleUser" parameterType="com.ceway.materials.bean.authority.UserRole">
+		update t_user_role set
+		role_id = #{roleId}
+		where user_id = #{userId}
+	</update>
+
+	<insert id="grantAuthorityToRole" parameterType="com.ceway.materials.bean.authority.RoleAuthority">
+		insert into
+		t_role_authority (role_authority_id,role_id,authority_id,create_date)
+		values(#{roleAuthorityId},#{roleId},#{authroityId},#{createTime})
+	</insert>
+
+	<select id="AuthorityRoleIsExists" resultType="int">
+		select count(1)
+		from t_role_authority
+		where role_id = #{roleId}
+		and authority_id =
+		#{authroityId}
+	</select>
+
+	<insert id="grantAuthority" parameterType="com.ceway.materials.bean.authority.Authority">
+		insert into
+		t_authority (authority_id,authority_name,authority_code,create_date)
+		values(#{authorityId},#{authorityName},#{authorityCode},#{createTime})
+	</insert>
+
+	<select id="findAllAuthority" resultMap="AuthorityMap">
+		select
+		<include refid="Authority_Column" />
+		from t_authority
+		where del_flag = 0
+	</select>
+
+	<select id="AuthorityIsExists" resultType="int" parameterType="java.lang.String">
+		select count(1) from t_authority
+		where authority_name =
+		#{authorityName}
+	</select>
+
+	<select id="AuthorityIsUse" resultType="int" parameterType="java.lang.String">
+		select count(1) from t_role_authority
+		where authority_id=#{id}
+		and
+		del_flag = 0
+	</select>
+
+	<update id="updateAuthority" parameterType="com.ceway.materials.bean.authority.Authority">
+		update t_authority
+		set authority_name = #{authorityName},
+		authority_code = #{authorityCode}
+		where authority_id = #{authorityId}
+	</update>
+
+	<update id="deleteAuthority" parameterType="java.lang.String">
+		update t_authority
+		set del_flag = 1 where authority_id = #{id}
+	</update>
+
+	<insert id="grantRole" parameterType="com.ceway.materials.bean.authority.Role">
+		insert into t_role
+		(role_id,role_name,create_date)
+		values(#{roleId},#{roleName},#{createTime})
+	</insert>
+
+	<select id="findAllRole" resultMap="RoleMap">
+		select
+		<include refid="Role_Column" />
+		from t_role
+		where del_flag = 0
+	</select>
+
+	<select id="RoleIsExists" resultType="int" parameterType="java.lang.String">
+		select
+		count(1) from t_role
+		where role_name = #{roleName}
+	</select>
+
+	<select id="RoleIsUse" resultType="int" parameterType="java.lang.String">
+		select
+		count(1) from t_user_role
+		where role_id=#{id}
+		and del_flag = 0
+	</select>
+
+	<update id="deleteRelationRole" parameterType="java.lang.String">
+		update
+		t_role_authority set del_flag=1
+		where role_id = #{id}
+	</update>
+
+	<update id="deleteRole" parameterType="java.lang.String">
+		update t_role set del_flag
+		= 1 where role_id = #{id}
+	</update>
+
+	<select id="getUserRoleInfo" resultMap="UserRoleMap">
+		SELECT
+			<include refid="UserRole_Column" />
+		FROM
+			t_user_role tur,
+			t_role tr
+		WHERE
+			tur.role_id = tr.role_id
+		AND tur.del_flag = 0
+	</select>
+
+	<select id="getRoleAuthInfo" resultMap="RoleAutnMap">
+		SELECT
+			<include refid="RoleAuth_Column" />
+		FROM
+			t_role tr,
+			t_authority ta,
+			t_role_authority tra
+		WHERE
+			tr.role_id = tra.role_id
+		AND ta.authority_id = tra.authority_id
+		AND tra.del_flag = 0
+	</select>
+
+	<select id="getUserAuthById"  resultType="com.ceway.materials.bean.bo.UserAuthBo" parameterType="java.lang.String">
+		SELECT
+			tur.user_id userId,
+			tur.user_name userName,
+			GROUP_CONCAT(DISTINCT tr.role_name) roleName,
+			GROUP_CONCAT(ta.authority_code) authoritycodes,
+			GROUP_CONCAT(ta.authority_name) authoritynames
+		FROM
+			t_user_role  tur,
+			t_role_authority  tra,
+			t_authority  ta,
+			t_role  tr
+		WHERE
+			tur.role_id = tr.role_id
+		AND tra.role_id = tr.role_id
+		AND tra.authority_id = ta.authority_id
+		AND tur.user_id = #{id}
+
+	</select>
+
+</mapper>

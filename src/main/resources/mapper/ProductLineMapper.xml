@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.ceway.materials.mapper.technics.ProductLineMapper">
+
+	<resultMap type="com.ceway.materials.bean.technics.ProductLine" id="lineMap">
+		<id property="gid"  column="lineId"   jdbcType="INTEGER" />
+		<result  property="lineName"   column="lineName"  jdbcType="VARCHAR"  />
+		 <collection property="technicss" resultMap="technicsMap" />
+	</resultMap>
+	
+	<resultMap type="com.ceway.materials.bean.technics.ProductTechnics" id="technicsMap">
+		<id property="gid"  column="technicsId"   jdbcType="INTEGER" />
+		<result  property="technicsName"   column="technicsName"  jdbcType="VARCHAR"  />
+	</resultMap>
+
+	<select id="findProductTechnicsInfo"  resultMap="lineMap">
+		select tpl.id as lineId, tpl.`name` as lineName, tpt.id as technicsId, tpt.`name` as technicsName 
+		from t_product_line tpl
+		left join t_product_technics tpt on tpl.id = tpt.line_id
+		order by tpl.id, tpt.seq
+	</select>
+</mapper>

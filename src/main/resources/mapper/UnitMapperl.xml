@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+        
+<mapper namespace="com.ceway.materials.mapper.unit.UnitMapper">
+	<resultMap type="com.ceway.materials.bean.unit.Unit" id="unitMap">
+		<id property="gid" column="unit_id" jdbcType="VARCHAR"/>
+		<result property="unitCode" column="unit_code" jdbcType="VARCHAR" />
+		<result property="unitCategoryId" column="unit_category_id" jdbcType="VARCHAR" />
+		<result property="unitName" column="unit_name" jdbcType="VARCHAR" />
+		<result property="delFlag" column="del_flag" jdbcType="INTEGER" />
+		<result property="createDate" column="create_date"  />
+	</resultMap>
+	
+	<resultMap type="com.ceway.materials.bean.unit.UnitCategory" id="unitCateGoryMap">
+		<id property="gid" column="unit_category_id" jdbcType="VARCHAR"/>
+		<result property="unitCategoryName" column="category_name" jdbcType="VARCHAR" />
+		<result property="delFlag" column="del_flag" jdbcType="INTEGER" />
+		<result property="createDate" column="create_date"  />
+		<collection property="unitList" resultMap="unitMap" />
+	</resultMap>
+	
+	<select id="findUnitInfo" resultMap="unitCateGoryMap">
+		SELECT
+			tuc.unit_category_id,
+			tuc.category_name,
+			tu.unit_id,
+			tu.unit_name,
+			tu.unit_code
+		FROM
+			t_unit tu,
+			t_unit_category tuc
+		WHERE
+			tu.unit_category_id = tuc.unit_category_id
+		AND tuc.del_flag = 0
+		AND tu.del_flag = 0
+	</select>
+	
+	<insert id="addUnitInfo" parameterType="com.ceway.materials.bean.unit.Unit">
+		insert into t_unit values(#{gid},#{unitCategoryId},#{unitCode},#{unitName},#{delFlag},#{createDate})
+	</insert>
+	
+	<select id="unitIsExits" resultType="java.lang.Integer" parameterType="java.lang.String">
+		select count(1) from t_unit 
+			where unit_name = #{unitName} and del_flag = 0
+	</select>
+	
+	<insert id="addUnitCategoryInfo" parameterType="com.ceway.materials.bean.unit.UnitCategory">
+		insert into t_unit_category values(#{gid},#{unitCategoryName},#{delFlag},#{createDate})
+	</insert>
+	
+	<select id="unitCateIsExits" resultType="java.lang.Integer" parameterType="java.lang.String">
+		select count(1) from t_unit_category 
+			where category_name = #{unitCategoryName} and del_flag = 0
+	</select>
+	
+</mapper>

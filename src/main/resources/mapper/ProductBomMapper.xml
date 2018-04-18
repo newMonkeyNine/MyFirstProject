@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.ceway.materials.mapper.bom.ProductBomMapper">
+
+	<resultMap type="com.ceway.materials.bean.bom.ProductBom"  id="productBomMap">
+		<id property="gid"   column="product_bom_id"   jdbcType="VARCHAR"/>
+		<result property="parentId"   column="parent_id"   jdbcType="VARCHAR"/>
+		<result property="productId"   column="product_id"   jdbcType="VARCHAR"/>
+		<result property="bomNum"   column="bom_num"   jdbcType="DOUBLE"/>
+		<result property="lossNum"   column="loss_num"   jdbcType="DOUBLE"/>
+		<result property="bomType"   column="bom_type"   jdbcType="INTEGER"/>
+		<result property="opCount"  column="opCount"  jdbcType="INTEGER" />
+		
+		<association property="product" javaType="com.ceway.materials.bean.product.Product">
+			<id property="gid"   column="product_id"   jdbcType="VARCHAR"/>
+			<result property="productCode"   column="product_code"   jdbcType="VARCHAR"/>
+			<result property="productName"   column="product_cname"   jdbcType="VARCHAR"/>
+			<result property="propertys"   column="propertys"   jdbcType="VARCHAR"/>
+			<result property="basicUnit"   column="basic_unit"   jdbcType="VARCHAR"/>
+			<result property="unitPrice" column="unit_price"  jdbcType="DOUBLE" />
+		</association> 
+		
+		<collection property="boms" resultMap="bomsMap" />
+		<collection property="bomTechnicss"  resultMap="bomTechncisMap" />
+	</resultMap>
+	
+	<resultMap type="com.ceway.materials.bean.technics.ProductBomTechnics" id="bomTechncisMap">
+		<id property="gid"  column="op_id"  jdbcType="VARCHAR" />
+		<result property="opPrice"   column="op_price"   jdbcType="DOUBLE" />
+		<association property="technics"   javaType="com.ceway.materials.bean.technics.ProductTechnics">
+			<id property="gid"   column="technicsId"   jdbcType="INTEGER"/>
+			<result property="technicsName"   column="technicsName"   jdbcType="VARCHAR"/>
+		</association>
+		
+		<collection property="technicsLoss"  resultMap="lossMap" />
+	</resultMap>
+	
+	<resultMap type="com.ceway.materials.bean.technics.ProductBomTechnicsLoss" id="lossMap">
+		<id property="gid"  column="mrl_id" jdbcType="VARCHAR"  />
+		<result property="lossNumber"  column="loss_number"  jdbcType="DOUBLE" />
+		<result property="mrlNumber"  column="mrl_number"  jdbcType="DOUBLE" />
+		
+		<association property="product"  javaType="com.ceway.materials.bean.product.Product">
+			<id property="gid"   column="mrl_product_id"   jdbcType="VARCHAR"/>
+			<result property="productCode"  column="mrl_product_code"  jdbcType="VARCHAR"  />
+			<result property="productName"   column="mrl_product_name"   jdbcType="VARCHAR"/>
+			<result property="propertys"   column="mrl_propertys"   jdbcType="VARCHAR"/>
+			<result property="basicUnit"   column="mrl_basic_unit"   jdbcType="VARCHAR"/>
+		</association>
+	</resultMap>
+	
+	<resultMap type="com.ceway.materials.bean.bom.ProductBom"  id="bomsMap">
+		<id property="gid"   column="c_product_bom_id"   jdbcType="VARCHAR"/>
+		<result property="parentId"   column="c_parent_id"   jdbcType="VARCHAR"/>
+		<result property="productId"   column="c_product_id"   jdbcType="VARCHAR"/>
+		<result property="bomNum"   column="c_bom_num"   jdbcType="DOUBLE"/>
+		<result property="lossNum"   column="c_loss_num"   jdbcType="DOUBLE"/>
+		<result property="bomType"   column="c_bom_type"   jdbcType="INTEGER"/>
+		<association property="product"  javaType="com.ceway.materials.bean.product.Product">
+			<id property="gid"   column="c_product_id"   jdbcType="VARCHAR"/>
+			<result property="productCode"   column="c_product_code"   jdbcType="VARCHAR"/>
+			<result property="productName"   column="c_product_cname"   jdbcType="VARCHAR"/>
+			<result property="propertys"   column="c_propertys"   jdbcType="VARCHAR"/>
+			<result property="basicUnit"   column="c_basic_unit"   jdbcType="VARCHAR"/>
+		</association>
+	</resultMap>
+
+	<insert id="insertProductBom"  parameterType="list">
+		insert into t_product_bom(product_bom_id, product_id, parent_id, del_flag, create_date, create_user_id, bom_num, bom_type, loss_num) values 
+		<foreach collection="list"  item="item"  index="index"  separator=","  >
+			(#{item.gid}, #{item.productId}, #{item.parentId}, #{item.delFlag}, #{item.createDate}, #{item.createId}, #{item.bomNum} , #{item.bomType}, #{item.lossNum})
+		</foreach>
+	</insert>
+	
+	<select id="findProductBomByParentId"  resultMap="productBomMap"  parameterType="java.lang.String">
+		select tpb.product_bom_id, tpb.product_id, tpb.parent_id, tpb.bom_num, tpb.loss_num ,tpb.bom_type,
+			tp.product_code, tp.product_cname, tpp2.property as propertys, tp.basic_unit, tp.unit_price,
+			ctpb.product_bom_id as c_product_bom_id, ctpb.product_id as c_product_id, ctpb.parent_id as c_parent_id, ctpb.bom_num as c_bom_num, ctpb.loss_num as c_loss_num,
+			ctpb.bom_type as c_bom_type, 
+			tpc.product_id as c_product_id, tpc.product_code as c_product_code, tpc.product_cname as c_product_cname, tpp3.property as c_propertys, tpc.basic_unit as c_basic_unit
+		from t_product_bom tpb
+		left join (select * from t_product_bom where del_flag = 0) ctpb on tpb.product_bom_id = ctpb.parent_id
+		left join t_product tp on tp.product_id = tpb.product_id
+		left join (
+					select tpp.product_id , group_concat(tpp.property_value order by tp.sort_no ASC separator '*') as property 
+					from t_product_property tpp 
+					left join t_property tp on tpp.property_id = tp.property_id
+					group by tpp.product_id
+				) tpp2		
+				on tpp2.product_id = tp.product_id
+		left join t_product tpc on tpc.product_id = ctpb.product_id
+		left join (
+					select tpp.product_id , group_concat(tpp.property_value order by tp.sort_no ASC separator '*') as property 
+					from t_product_property tpp 
+					left join t_property tp on tpp.property_id = tp.property_id
+					group by tpp.product_id
+				) tpp3	
+				on tpp3.product_id = tpc.product_id
+		where tpb.del_flag = 0
+			and tpb.product_bom_id = #{_parameter}
+	</select>
+	
+	<update id="updateProductBom"  parameterType="list">
+		update t_product_bom
+			set del_flag = 
+			<foreach collection="list"  item="item"  index="index"  separator=" "  open="case product_bom_id"  close="end">
+				when #{item.gid, jdbcType=VARCHAR}  then #{item.delFlag, jdbcType=INTEGER}
+			</foreach>
+			, product_id =
+			<foreach collection="list"  item="item"  index="index"  separator=" "  open="case product_bom_id"  close="end">
+				when #{item.gid, jdbcType=VARCHAR}  then #{item.productId, jdbcType=INTEGER}
+			</foreach>
+			, bom_num =
+			<foreach collection="list"  item="item"  index="index"  separator=" "  open="case product_bom_id"  close="end">
+				when #{item.gid, jdbcType=VARCHAR}  then #{item.bomNum, jdbcType=DOUBLE}
+			</foreach>
+			, loss_num =
+			<foreach collection="list"  item="item"  index="index"  separator=" "  open="case product_bom_id"  close="end">
+				when #{item.gid, jdbcType=VARCHAR}  then #{item.lossNum, jdbcType=DOUBLE}
+			</foreach>
+			, bom_type =
+			<foreach collection="list"  item="item"  index="index"  separator=" "  open="case product_bom_id"  close="end">
+				when #{item.gid, jdbcType=VARCHAR}  then #{item.bomType, jdbcType=INTEGER}
+			</foreach>
+		where product_bom_id in
+			<foreach collection="list"  item="item"  index="index"  separator=","  open="("  close=")">
+				#{item.gid, jdbcType=VARCHAR}
+			</foreach>
+	</update>
+	
+	
+	<select id="findProductBomParent"  parameterType="map"  resultMap="productBomMap">
+		select tpb.product_bom_id, tpb.product_id, tpb.parent_id, tpb.bom_num, tpb.loss_num ,tpb.bom_type, tpbt2.opCount,
+			tp.product_code, tp.product_cname, IFNULL(tp.unit_price, 0) as unit_price ,tpp2.property as propertys, tp.basic_unit, tpbt.op_id, IFNULL(tpbt.op_price,0) as op_price ,tpt.id as technicsId, tpt.`name` as technicsName
+			, ttl.mrl_id, ttl.loss_number, ttl.mrl_number, tp2.product_id as mrl_product_id, tp2.product_cname as mrl_product_name, tp2.product_code as mrl_product_code
+			, tp2.basic_unit as mrl_basic_unit, tpp3.property as mrl_propertys
+		from t_product_bom tpb
+		left join t_product tp on tp.product_id = tpb.product_id
+		left join (
+					select tpp.product_id , group_concat(tpp.property_value order by tp.sort_no ASC separator '*') as property 
+					from t_product_property tpp 
+					left join t_property tp on tpp.property_id = tp.property_id
+					group by tpp.product_id
+				) tpp2		
+				on tpp2.product_id = tp.product_id
+		left join (select * from t_product_bom_technics where del_flag = 0) tpbt on  tpb.product_bom_id = tpbt.product_bom_id
+		left join t_product_technics tpt on tpbt.technics_id = tpt.id
+		left join (select * from t_technics_loss where del_flag = 0) ttl on tpbt.op_id = ttl.op_id
+		left join t_product tp2 on tp2.product_id = ttl.product_id
+		left join (
+					select tpp.product_id , group_concat(tpp.property_value order by tp.sort_no ASC separator '*') as property 
+					from t_product_property tpp 
+					left join t_property tp on tpp.property_id = tp.property_id
+					group by tpp.product_id
+				) tpp3		
+				on tpp3.product_id = tp2.product_id
+		left join (select product_bom_id, count(op_id) as opCount from t_product_bom_technics
+		where del_flag = 0
+		group by product_bom_id) tpbt2 on tpbt2.product_bom_id = tpb.product_bom_id
+		where tpb.del_flag = 0
+			and tpb.parent_id is null
+			<if test="offset != null">
+			and tpb.product_bom_id in (
+				select t1.* from (
+				select product_bom_id from t_product_bom
+				where del_flag = 0
+					and parent_id is null
+				ORDER BY create_date DESC
+				limit #{offset}, #{size}
+				) t1
+			)
+			</if>
+		order by tpb.create_date desc, tpb.product_bom_id, tpt.seq
+	</select>
+	
+	<select id="findProductBomByCount"  parameterType="map"  resultType="java.lang.Integer">
+		select count(product_bom_id) from t_product_bom
+				where del_flag = 0
+					and parent_id is null
+				ORDER BY create_date DESC
+	</select>
+	
+	<select id="findProductBomChildrenByParentId"  resultMap="productBomMap"   parameterType="string">
+	select tpb.product_bom_id, tpb.product_id, tpb.parent_id, tpb.bom_num, tpb.loss_num ,tpb.bom_type, tpbt2.opCount,
+			tp.product_code, tp.product_cname, IFNULL(tp.unit_price, 0) as unit_price, tpp2.property as propertys, tp.basic_unit, tpbt.op_id, IFNULL(tpbt.op_price,0) as op_price, tpt.id as technicsId, tpt.`name` as technicsName
+			, ttl.mrl_id, ttl.loss_number, ttl.mrl_number, tp2.product_id as mrl_product_id, tp2.product_cname as mrl_product_name, tp2.product_code as mrl_product_code
+			, tp2.basic_unit as mrl_basic_unit, tpp3.property as mrl_propertys
+		from t_product_bom tpb
+		left join t_product tp on tp.product_id = tpb.product_id
+		left join (
+					select tpp.product_id , group_concat(tpp.property_value order by tp.sort_no ASC separator '*') as property 
+					from t_product_property tpp 
+					left join t_property tp on tpp.property_id = tp.property_id
+					group by tpp.product_id
+				) tpp2		
+				on tpp2.product_id = tp.product_id
+		left join (select * from t_product_bom_technics where del_flag = 0) tpbt on  tpb.product_bom_id = tpbt.product_bom_id
+		left join t_product_technics tpt on tpbt.technics_id = tpt.id
+		left join (select * from t_technics_loss where del_flag = 0) ttl on tpbt.op_id = ttl.op_id
+		left join t_product tp2 on tp2.product_id = ttl.product_id
+		left join (
+					select tpp.product_id , group_concat(tpp.property_value order by tp.sort_no ASC separator '*') as property 
+					from t_product_property tpp 
+					left join t_property tp on tpp.property_id = tp.property_id
+					group by tpp.product_id
+				) tpp3		
+				on tpp3.product_id = tp2.product_id
+		left join (select product_bom_id, count(op_id) as opCount from t_product_bom_technics
+		where del_flag = 0
+		group by product_bom_id) tpbt2 on tpbt2.product_bom_id = tpb.product_bom_id
+		where tpb.del_flag = 0
+			and tpb.parent_id = #{_parameter}
+			order by tpb.create_date asc, tpb.product_bom_id 
+	</select>
+	
+	<select id="getProductBomTree"  parameterType="string"  resultType="string" >
+		SELECT product_bom_id FROM t_product_bom 
+		WHERE FIND_IN_SET(product_bom_id,queryChildrenBom(#{_parameter}))
+	</select>
+	
+	<update id="deleteProductBomTree"  parameterType="list">
+		update t_product_bom set del_flag = 1
+		where product_bom_id in
+		<foreach collection="list"  item="item"  index="index"  separator=","  open="("  close=")">
+				#{item, jdbcType=VARCHAR}
+			</foreach>
+	</update>
+
+</mapper>

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.ceway.materials.mapper.product.PropertyMapper">
+
+	<resultMap type="com.ceway.materials.bean.product.Property"  id="propertyMap">
+		<id property="gid" column="property_id" jdbcType="VARCHAR"/>
+		<result property="propertyCode" column="property_code" jdbcType="VARCHAR" />
+		<result property="propertyName" column="property_name" jdbcType="VARCHAR" />
+		<result property="delFlag" column="del_flag" jdbcType="INTEGER" />
+		<result property="createDate" column="create_date" />
+		<result property="sortNo" column="sort_no"/>
+		<collection property="details" resultMap="categoryPropertyMap" />
+	</resultMap>
+	
+	<resultMap type="com.ceway.materials.bean.product.CategoryProperty"  id="categoryPropertyMap">
+		<id property="gid" column="category_property_id" jdbcType="VARCHAR"/>
+		<result property="propertyId" column="property_id"  jdbcType="VARCHAR" />
+		<result property="propertyValue" column="property_value" jdbcType="VARCHAR" />
+	</resultMap>
+	
+	<insert id="addPropertyInfo" parameterType="com.ceway.materials.bean.product.Property">
+		insert into t_property 
+			values(#{gid},#{propertyCode},#{propertyName},#{delFlag},#{createDate})
+	</insert>
+	
+	<select id="findProIsUse" resultType="java.lang.Integer" parameterType="java.lang.String">
+		select count(1) from t_property 
+			where property_name = #{propertyName}
+			and del_flag = 0
+	</select>
+	
+	<select id="findPropertyInfo" parameterType="java.lang.String" resultMap="propertyMap">
+		SELECT
+		   tp.property_id,
+		   tp.property_code,
+		   tp.property_name,
+		   tp.del_flag,
+		   tp.create_date,
+		   tcp.category_property_id,
+		   tcp.property_value,
+		   tp.sort_no
+		FROM
+		   t_category_property tcp
+		LEFT JOIN t_property tp
+		ON tcp.property_id = tp.property_id
+		where del_flag = 0
+		and prod_category_id = #{prodCateId}
+		order by tp.sort_no asc
+	</select>
+	
+	<select id="findPropertyAndDetail"  parameterType="map" resultMap="propertyMap">
+		select tp.property_id, tp.property_code, tp.property_name, tp.del_flag, tp.create_date
+		,tcp.category_property_id , tcp.property_value
+		from t_category_property tcp 
+		left join t_property tp on tcp.property_id = tp.property_id
+		where tcp.prod_category_id = #{proCategoryId}
+		order by tp.property_id
+	</select>
+	
+	<select id="findPropertyByIds"  parameterType="map"  resultMap="categoryPropertyMap">
+		select category_property_id, prod_category_id, property_id, property_value 
+		from t_category_property tpc
+		where tpc.category_property_id in
+		<foreach collection="ids" item="item" index="index" open="("  separator="," close=")">
+				#{item}
+			</foreach>
+	</select>
+
+</mapper>

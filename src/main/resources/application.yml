@@ -1,0 +1,61 @@
+spring:
+  application:
+    name: boot
+
+  http:
+    encoding:
+      force: true
+      
+      charset: UTF-8
+      enabled: true 
+
+  freemarker:
+    template-loader-path: /WEB-INF/template
+    cache: false
+    charset: UTF-8
+    check-template-location: true
+    content-type: text/html
+    expose-request-attributes: true
+    expose-session-attributes: true
+    request-context-attribute: request
+    suffix: .ftl
+     
+
+    
+datasource:
+   filters: stat,wall,log4j
+   connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+   useGlobalDataSourceStat: true
+
+   druid:
+      url: jdbc:mysql://47.104.174.247:3306/materialsDemo?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&createDatabaseIfNotExist=true&useSSL=false      
+      username: root	
+      password: Lhl_123456!!!
+      filters: stat,slf4j
+      initialSize: 10
+      maxActive: 100
+      maxWait: 60000
+      minIdle: 5
+      timeBetweenEvictionRunsMillis: 60000
+      minEvictableIdleTimeMillis: 300000
+      validationQuery: SELECT 'x'
+      testWhileIdle: true
+      testOnBorrow: false
+      testOnReturn: false
+      poolPreparedStatements: true
+      maxPoolPreparedStatementPerConnectionSize: 20
+
+server:
+  port: 8088
+  contextPath: /materials
+  session:
+    timeout: 30
+    
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.ceway.materials.bean
+  check-config-location: true
+  config-location: classpath:mybatis.xml
+
+

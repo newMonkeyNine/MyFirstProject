@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+        
+<mapper namespace="com.ceway.materials.mapper.storage.CompanyMapper">
+	<resultMap type="com.ceway.materials.bean.storage.Company" id="CompanyMap">
+		<id column="company_id" property="gid"/>
+		<result column="company_code" property="comporyCode"/>
+		<result column="company_name" property="comporyName"/>
+		<result column="sort_no" property="sortNo"/>
+		<result column="del_flag" property="delFlag"/>
+		<result column="create_date" property="createDate"/>
+	</resultMap>
+	
+	<select id="findCompanyInfo" resultMap="CompanyMap">
+		select 	company_id,company_code,company_name,sort_no,del_flag,create_date
+		    from t_company where del_flag = 0
+	</select>
+	
+	<select id="findCompanyIsExits" parameterType="java.lang.String" resultType="java.lang.Integer">
+		select count(1) from t_company
+		    where company_name = #{comporyName}
+		    and del_flag = 0
+	</select>
+	
+	<insert id="addCompanyInfo" parameterType="com.ceway.materials.bean.storage.Company">
+		insert into t_company values(#{gid},#{comporyCode},#{comporyName},#{sortNo},#{delFlag},#{createDate})
+	</insert>
+</mapper>

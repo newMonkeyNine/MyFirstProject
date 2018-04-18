@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.ceway.materials.mapper.ventor.VentorMapper">
+
+	<resultMap type="com.ceway.materials.bean.ventor.Ventor"  id="ventorMap">
+		<id property="gid" column="ventor_id" jdbcType="VARCHAR"/>
+		<result property="ventorCode" column="ventor_code" jdbcType="VARCHAR" />
+		<result property="ventorName" column="ventor_name" jdbcType="VARCHAR" />
+		<result property="ventorLogo" column="ventor_logo" jdbcType="VARCHAR" />
+		<result property="sortNo" column="sort_no" jdbcType="INTEGER" />
+		<result property="delFlag" column="del_flag" jdbcType="INTEGER" />
+		<result property="createDate" column="create_date"  />
+	</resultMap>
+	
+	<select id="findVentorById" parameterType="string"  resultMap="ventorMap">
+		select tv.ventor_id, tv.ventor_code, tv.ventor_name, tv.ventor_logo, tv.sort_no, tv.del_flag, tv.create_date 
+		from t_ventor tv
+		where tv.del_flag = 0
+			and tv.ventor_id = #{_parameter}
+	</select>
+	
+	<select id="findVentorInfo"  parameterType="map"  resultMap="ventorMap">
+		select tv.ventor_id, tv.ventor_code, tv.ventor_name, tv.ventor_logo, tv.sort_no, tv.del_flag, tv.create_date 
+		from t_ventor tv
+		where tv.del_flag = 0
+		<if test="isOften == 1">
+			and tv.is_often = 1
+		</if>
+		<if test="ventorCode != null">
+			and tv.ventor_code like ('%${ventorCode}%')
+		</if>
+		<if test="isBrand != null">
+			and tv.is_brand = #{isBrand}
+		</if>
+	</select>
+	
+	
+	<select id="findVentorIdByName" parameterType="String" resultType="String">
+		select tv.ventor_id 
+			from t_ventor tv
+		where tv.del_flag = 0
+		    and tv.ventor_name = #{ventorNames}
+	</select>
+
+	<insert id="addVentorInfo" parameterType="com.ceway.materials.bean.ventor.Ventor">
+		insert into t_ventor(ventor_id,ventor_code,ventor_name,ventor_logo,sort_no,del_flag,create_date) 
+		   values(#{gid},#{ventorCode},#{ventorName},#{ventorLogo},#{sortNo},#{delFlag},#{createDate})
+	</insert>
+	
+	<select id="findVentInfoIsUse" resultType="java.lang.Integer" parameterType="java.lang.String">
+		select count(1) from t_product
+			where ventor_id = #{ventorId}
+			and del_flag = 0
+	</select>
+	
+	<select id="findVentInfoIsExist" resultType="java.lang.Integer" parameterType="java.lang.String">
+		select count(1) from t_ventor
+			where ventor_name = #{ventorName}
+			and del_flag = 0
+	</select>
+	
+	<update id="delVentorInfoById" parameterType="java.lang.String">
+		update t_ventor set del_flag = 1
+			where ventor_id = #{ventorId}
+			and del_flag = 0
+	</update>
+	
+	<update id="updateVentorInfo" parameterType="com.ceway.materials.bean.ventor.Ventor">
+		update t_ventor set  
+			ventor_code = #{ventorCode},
+			ventor_name = #{ventorName},
+			ventor_logo = #{ventorLogo},
+			sort_no = #{sortNo}
+			where ventor_id = #{gid}
+			and del_flag = 0
+	</update>
+	
+	
+	
+</mapper>

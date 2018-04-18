@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.ceway.materials.mapper.product.ProductPropertyMapper">
+
+	<resultMap type="com.ceway.materials.bean.product.ProductProperty"  id="propertyMap">
+		<id property="gid" column="prod_property_id" jdbcType="VARCHAR"/>
+		<result property="prodId" column="product_id" jdbcType="VARCHAR" />
+		<result property="propertyId" column="property_id" jdbcType="VARCHAR" />
+		<result property="propertyValue" column="property_value" jdbcType="VARCHAR" />
+	</resultMap>
+	
+	<resultMap type="com.ceway.materials.bean.bo.CategoryBo" id="CategoryMap">
+		<id property="id" column="prod_category_id" jdbcType="VARCHAR"/>
+		<result property="categoryName" column="category_name" jdbcType="VARCHAR" />
+		<collection property="propertyList" resultMap="propertysMap"/>
+	</resultMap>
+	
+	<resultMap type="com.ceway.materials.bean.bo.PropertyBo" id="propertysMap">
+		<id property="id" column="property_id" jdbcType="VARCHAR"/>
+		<result property="propertyName" column="property_name" jdbcType="VARCHAR" />
+		<result property="sortNo" column="sort_no" jdbcType="INTEGER" />
+		<collection property="valueList" resultMap="valueMap" />
+	</resultMap>
+	
+	<resultMap type="com.ceway.materials.bean.bo.PropertyValueBo" id="valueMap">
+		<id property="id" column="category_property_id" jdbcType="VARCHAR"/>
+		<result property="value" column="property_value" jdbcType="VARCHAR" />
+	</resultMap>
+	
+	<select id="findPropertyByIds"  parameterType="map"  resultMap="propertyMap">
+		select tpp.prod_property_id, tpp.product_id, tpp.property_id, tpp.property_value 
+		from t_product_property tpp
+		where tpp.prod_property_id in
+		<foreach collection="ids" item="item" index="index" open="("  separator="," close=")">
+				#{item}
+			</foreach>
+	</select>
+	
+	<select id="findpropertyByCateId" resultMap="CategoryMap" parameterType="string">
+		SELECT
+		   tpc.prod_category_id,
+		   tpc.category_name,
+		   tp1.property_id,
+		   tp1.property_name,
+		   tp1.sort_no,
+		   tcp.category_property_id,
+		   tcp.property_value
+		FROM
+			 t_product_category tpc 
+		LEFT JOIN t_category_property tcp ON tpc.prod_category_id = tcp.prod_category_id
+		left JOIN (select * from t_property tp where tp.del_flag = 0) tp1 ON tp1.property_id = tcp.property_id
+		WHERE
+		   tpc.prod_category_id = #{id}
+	    AND
+		   tpc.del_flag = 0
+		order by 
+		   tp1.sort_no
+	</select>
+	
+	<update id="updatePropertyNameById">
+		UPDATE t_property
+		SET property_name = #{propertyName}
+		WHERE
+		   property_id = #{propertyId}
+	</update>
+	
+	<update id="updateSortNoById">
+		UPDATE t_property
+		SET sort_no = #{sortNo}
+		WHERE
+		   property_id = #{propertyId}
+	</update>
+	
+	<insert id="addPropertyInfo" parameterType="com.ceway.materials.bean.bo.PropertyAddBo">
+		insert into t_category_property
+		values (#{id},#{cateId},#{propertyId},#{propertyName})
+	</insert>
+	
+	<delete id="deletePropertyInfo" parameterType="string" >
+		delete from t_category_property where category_property_id = #{id}
+	</delete>
+	
+	<insert id="addPropertyNameAndValue" parameterType="com.ceway.materials.bean.bo.BigPropertyBo">
+		INSERT INTO t_property (
+		   property_id,
+		   property_name,
+		   sort_no,
+		   del_flag,
+		   create_date
+		)
+		VALUES
+		   (#{id},
+		    #{propertyName},
+		    #{sortNo},
+		    #{delFlag},
+		    #{createTime})
+	</insert>
+	
+	<insert id="addPropertyValues"  parameterType="com.ceway.materials.bean.bo.PropertyAddBo">
+		INSERT INTO t_category_property (
+		   category_property_id,
+		   prod_category_id,
+		   property_id,
+		   property_value
+		)
+		VALUES
+		   (#{id},
+		    #{cateId},
+		    #{propertyId},
+		    #{propertyName})
+	</insert>
+	
+	<update id="deletePropertyInfoById" parameterType="string">
+		UPDATE t_property tp
+		SET 
+		   tp.del_flag = 1
+		WHERE
+		   tp.property_id = #{id}
+	</update>
+	
+	<delete id="deletePropertyValueById" parameterType="string">
+		delete from t_category_property
+		where
+		   property_id = #{id}
+	</delete>
+	
+	<select id="findPropertyNameIsExits" resultType="int" parameterType="string">
+		SELECT
+		   count(1)
+		FROM
+		   t_category_property tcp
+		LEFT JOIN t_product_category tpc ON tcp.prod_category_id = tpc.category_id
+		LEFT JOIN t_property tp ON tp.property_id = tcp.property_id
+		WHERE
+		   tp.property_name = #{name}
+		AND 
+		   tcp.prod_category_id = #{id}
+		AND
+		   tp.del_flag = 0
+	</select>
+	
+	<select id="findEditPropertyNameIsExits" resultType="int">
+		SELECT
+		   count(1)
+		FROM
+		   t_category_property tcp
+		LEFT JOIN t_product_category tpc ON tcp.prod_category_id = tpc.category_id
+		LEFT JOIN t_property tp ON tp.property_id = tcp.property_id
+		WHERE
+		   tp.property_name = #{name}
+		AND 
+		   tcp.prod_category_id = #{cateId}
+	    AND
+		   tp.property_id &lt;&gt; #{propId}
+	    AND
+	       tp.del_flag = 0
+	</select>
+	
+	<select id="findPropertyValueIsExits" resultType="int">
+		SELECT
+		   count(1)
+		FROM
+		   t_category_property tcp
+		LEFT JOIN t_property tp ON tcp.property_id = tp.property_id
+		WHERE
+		   tp.property_id = #{propertyId}
+		AND 
+		   property_value = #{value}
+		and 
+		   tp.del_flag = 0
+	</select>
+	
+	<select id="findSortNoIsExits" resultType="int">
+		SELECT
+		   count(1)
+		FROM
+		   t_category_property tcp
+		LEFT JOIN t_product_category tpc ON tcp.prod_category_id = tpc.category_id
+		LEFT JOIN t_property tp ON tp.property_id = tcp.property_id
+		WHERE
+		   tp.sort_no = #{sortNo}
+		AND 
+		   tcp.prod_category_id = #{cateId}
+	    AND
+		   tp.property_id &lt;&gt; #{propId}
+		AND
+		   tp.del_flag = 0
+	</select>
+
+	
+</mapper>

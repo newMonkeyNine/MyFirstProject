@@ -1,0 +1,575 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.ceway.materials.mapper.product.ProductMapper">
+
+	<resultMap type="com.ceway.materials.bean.product.Product"  id="productMap">
+		<id property="gid" column="product_id" jdbcType="VARCHAR"/>
+		<result property="ventorId" column="ventor_id" jdbcType="VARCHAR" />
+		<result property="unitCategoryId" column="unit_category_id" jdbcType="VARCHAR" />
+		<result property="prodCategoryId" column="prod_category_id" jdbcType="VARCHAR" />
+		<result property="productCode" column="product_code" jdbcType="VARCHAR" />
+		<result property="ventorProdId" column="ventor_prod_id" jdbcType="VARCHAR" />
+		<result property="keyWord" column="key_word" jdbcType="VARCHAR" />
+		<result property="productName" column="product_cname" jdbcType="VARCHAR" />
+		<result property="easyCode" column="easy_code" jdbcType="VARCHAR" />
+		<result property="shortName" column="short_name" jdbcType="VARCHAR" />
+		<result property="basicUnit" column="basic_unit" jdbcType="VARCHAR" />
+		<result property="purchaseUnit" column="purchase_unit" jdbcType="VARCHAR" />
+		<result property="stockUnit" column="stock_unit" jdbcType="VARCHAR" />
+		<result property="modelType" column="model_type" jdbcType="VARCHAR"/>
+		<result property="modelName" column="model" jdbcType="VARCHAR"/>
+		<result property="produceUnit" column="produce_unit" jdbcType="VARCHAR" />
+		<result property="saleUnit" column="sale_unit" jdbcType="VARCHAR" />
+		<result property="amountPrecision" column="amount_precision" jdbcType="INTEGER" />
+		<result property="highStock" column="high_stock" jdbcType="DECIMAL" />
+		<result property="lowStock" column="low_stock" jdbcType="DECIMAL" />
+		<result property="safeStock" column="safe_stock" jdbcType="DECIMAL" />
+		<result property="sortNo" column="sort_no" jdbcType="INTEGER" />
+		<result property="isUser" column="is_use" jdbcType="INTEGER" />
+		<result property="projectCode" column="project_code" jdbcType="VARCHAR" />
+		<result property="deviceCode" column="device_code" jdbcType="VARCHAR" />
+		<result property="qrCode" column="qr_code" jdbcType="VARCHAR" />
+		<result property="qrCodeUrl" column="qr_code_url" jdbcType="VARCHAR" />
+		<result property="delFlag" column="del_flag" jdbcType="INTEGER" />
+		<result property="createDate" column="create_date"  />
+		<result property="createId" column="create_user_id" jdbcType="VARCHAR" />
+		<result property="modifyDate" column="update_date"  />
+		<result property="modifyId" column="update_user_id" jdbcType="VARCHAR" />
+		<result property="imgUrl2" column="2dUrl" jdbcType="VARCHAR" />
+		<result property="imgUrl3" column="3dUrl" jdbcType="VARCHAR" />
+		<result property="imgUrl" column="imgUrl" jdbcType="VARCHAR" />
+		<result property="propertys" column="property" jdbcType="VARCHAR" />
+		<result property="stockNumber" column="stock_num" jdbcType="INTEGER" />
+		<result property="modelName" column="model" jdbcType="VARCHAR" />
+		<result property="modelType" column="modelType" jdbcType="VARCHAR" />
+		<result property="description" column="desc_info" jdbcType="VARCHAR" />
+		<result property="isRecommend" column="is_recommend" jdbcType="VARCHAR" />
+		<result property="lockNum" column="lock_num" jdbcType="INTEGER" />
+		<result property="unitPrice"  column="unit_price"  jdbcType="DOUBLE" />
+
+		<association property="ventor"
+			javaType="com.ceway.materials.bean.ventor.Ventor">
+			<id property="gid" column="ventor_id" jdbcType="VARCHAR" />
+			<result property="ventorName" column="ventor_name" jdbcType="VARCHAR" />
+		</association>
+	
+		<association property="category"  javaType="com.ceway.materials.bean.product.Category">
+			<id property="gid"  column="category_id"  jdbcType="VARCHAR" />
+			<result property="categoryName"   column="tc_category_name"  jdbcType="VARCHAR"  />
+		</association>
+		
+		<association property="productFile"
+			javaType="com.ceway.materials.bean.product.ProductFile">
+			<id property="gid" column="product_file_id" jdbcType="VARCHAR" />
+			<result property="fileUrl" column="file_url" jdbcType="VARCHAR" />
+			<association property="prodFileType" javaType="ProductFileType">
+				<id property="gid" column="product_file_type_id"/>
+				<result property="fileTypeName" column="file_type_name" jdbcType="VARCHAR"/>
+				<result property="fileTypeCode" column="file_type_code" jdbcType="VARCHAR"/>
+			</association>
+		</association>
+		
+		<association property="prodCate"
+			javaType="com.ceway.materials.bean.product.ProductCategory">
+			<id property="gid" column="category_id" jdbcType="VARCHAR" />
+			<result property="categoryName" column="category_name" jdbcType="VARCHAR" />
+		</association>
+		
+	</resultMap>
+	
+	<resultMap type="com.ceway.materials.bean.product.ProductFileType" id="prodFileTypeMap">
+		<id property="gid" column="product_file_type_id" jdbcType="VARCHAR" />
+		<result property="fileTypeName" column="file_type_name" jdbcType="VARCHAR" />
+		<result property="fileTypeCode" column="file_type_code" jdbcType="VARCHAR" />
+		<result property="delFlag" column="del_flag" jdbcType="VARCHAR" />
+		<result property="createDate" column="create_date" jdbcType="VARCHAR" />
+	</resultMap>
+	
+	<resultMap type="com.ceway.materials.bean.bo.ProductBO" id="exportProductMap">
+   		<result property="productName" column="product_cname" jdbcType="VARCHAR" />
+   		<result property="productCode" column="product_code" jdbcType="VARCHAR" />
+   		<result property="property" column="property" jdbcType="VARCHAR" />
+   		<result property="categoryName" column="category_name" jdbcType="VARCHAR" />
+   		<result property="basicUnit" column="basic_unit" jdbcType="VARCHAR" />
+   </resultMap>
+	
+	<select id="findProdInfoById" parameterType="java.lang.String" resultMap="productMap">
+		select tp.product_id,tp.product_code,tp.key_word,tp.product_cname,tp.ventor_id
+				,tp.prod_category_id,tp.easy_code,tp.basic_unit,tp.amount_precision
+				,tp.model_type,tp.model,tp.high_stock,tp.low_stock,tp.safe_stock,tp.is_use,tp.desc_info,tp.is_recommend,tp.unit_price, tc.category_id, tc.category_name as tc_category_name
+				,tpc.prod_category_id,tpc.category_name
+				,tv.ventor_id,tv.ventor_name
+				,tpf.product_file_id,tpf4.file_url
+				,tpft.product_file_type_id,tpft.file_type_code
+				,IFNULL(ts.stock_num,0) as stock_num
+				,tpp2.property
+				,tpf3.file_url as 3dUrl
+				,tpf4.file_url as imgUrl,
+				tpf5.file_url as 2dUrl
+		from t_product tp
+		left join t_product_category tpc on tpc.prod_category_id = tp.prod_category_id
+		left join t_category tc on tpc.category_id = tc.category_id
+		left join t_ventor tv on tp.ventor_id = tv.ventor_id
+		left join t_product_file tpf on tpf.product_id = tp.product_id
+		left join t_product_file_type tpft on tpft.product_file_type_id = tpf.product_file_type_id
+		left join t_stock ts on ts.stock_product_id = tp.product_id
+		left join (
+			select tpp.product_id , group_concat(tpp.property_value order by tp.sort_no ASC separator '*') as property 
+			from t_product_property tpp 
+			left join t_property tp on tpp.property_id = tp.property_id
+			group by tpp.product_id
+		) tpp2		
+		on tpp2.product_id = tp.product_id
+		left join (
+			select tpf2.* from t_product_file tpf2
+			join t_product_file_type tpft on tpf2.product_file_type_id = tpft.product_file_type_id
+			where tpft.file_type_code = '3D'
+		) tpf3 on tpf3.product_id = tp.product_id
+		left join (
+			select tpf2.* from t_product_file tpf2
+			join t_product_file_type tpft on tpf2.product_file_type_id = tpft.product_file_type_id
+			where tpft.file_type_code = 'img'
+		) tpf4 on tpf4.product_id = tp.product_id
+		left join (
+			select tpf2.* from t_product_file tpf2
+			join t_product_file_type tpft on tpf2.product_file_type_id = tpft.product_file_type_id
+			where tpft.file_type_code = '2D'
+		) tpf5 on tpf5.product_id = tp.product_id
+		where
+			tp.product_id = #{productId}
+		and 
+			tp.del_flag = 0
+	</select>
+	
+	<update id="updateProductProperty" parameterType="list">
+		update t_product_property 
+			set property_value = 
+			<foreach collection="list" item="item" index="index" separator="" open="case property_id" close = "end"  >  
+        		when #{item.propertyId} then #{item.propertyValue}
+    		</foreach>
+    	where product_id in
+    		<foreach collection="list" index="index" open="(" separator="," close=")" item="item">
+				#{item.prodId}
+			</foreach>
+	</update>
+	
+	<delete id="deleteProductProperty"  parameterType="string" >
+		delete from t_product_property where product_id = #{productId}
+	</delete>
+	
+	<update id="updateProductFileInfo" parameterType="com.ceway.materials.bean.product.ProductFile">
+		update t_product_file 
+			set 
+			<if test="fileUrl != null and fileUrl != '' ">file_url = #{fileUrl}, </if>
+			<if test="fileName != null and fileName != '' ">file_name = #{fileName}, </if>
+			update_date = #{modifyDate}
+		where 
+			product_id = #{productId}
+		and
+			product_file_type_id = #{prodFileTypeId}
+		and
+			del_flag = 0
+	</update>
+	
+	<select id="findProdInfoByModelIsExits" resultType="int">
+		select count(1) from t_product where product_code = #{productCode} and del_flag = 0
+	</select>
+	
+	<select id="updateProdInfoByModelIsExits" resultType="java.lang.String">
+		select tp.product_code from t_product tp where tp.product_id = #{productId} and tp.del_flag = 0
+	</select>
+
+	<select id="findVentorProdInfoByModel" resultType="int">
+		select count(1) from t_ventor_product where model_type=#{modelType} and ventor_id = #{ventorId}
+	</select>
+	
+	<select id="findProductById" parameterType="map" resultMap="productMap">
+		select tp.product_id, tp.ventor_id, tp.unit_category_id, tp.prod_category_id, tp.product_code
+					,tp.ventor_prod_id,tp.model_type, tp.key_word, tp.product_cname, tp.easy_code, tp.short_name, tp.basic_unit
+					,tp.purchase_unit, tp.stock_unit, tp.produce_unit, tp.sale_unit, tp.amount_precision, tp.high_stock
+					,tp.low_stock, tp.safe_stock, tp.sort_no, tp.is_use, tp.project_code, tp.device_code, tp.qr_code, tp.unit_price
+					,tp.qr_code_url, tp.del_flag, tp.create_date, tp.create_user_id, tp.update_date, tp.update_user_id,tp.is_recommend
+					, tpf.product_file_id, tpf.file_url as 2dUrl, tpf2.file_url as 3dUrl, tpp2.property, IFNULL(ts.stock_num,0) as stock_num
+					,tv.ventor_id , tv.ventor_name
+				from t_product tp
+				left join t_ventor tv on tp.ventor_id = tv.ventor_id
+				left join (
+					select tpp.product_id , group_concat(tpp.property_value order by tp.sort_no ASC separator '*') as property 
+					from t_product_property tpp 
+					left join t_property tp on tpp.property_id = tp.property_id
+					group by tpp.product_id
+				) tpp2		
+				on tpp2.product_id = tp.product_id
+				left join t_stock ts on tp.product_id = ts.stock_product_id
+				left join (select tpf3.* from t_product_file tpf3 
+									 left join t_product_file_type tpft on tpf3.product_file_type_id = tpft.product_file_type_id 
+									 where tpft.file_type_code = 'img') tpf on tpf.product_id = tp.product_id
+				left join (select tpf3.* from t_product_file tpf3 
+									 left join t_product_file_type tpft on tpf3.product_file_type_id = tpft.product_file_type_id 
+									 where tpft.file_type_code = '3D') tpf2 on tpf2.product_id = tp.product_id
+				where tp.del_flag = 0
+					and tp.product_id = #{productId}
+	</select>	
+	
+	
+	<insert id="addProductInfo" parameterType="com.ceway.materials.bean.product.Product" >
+		INSERT INTO t_product ( 
+				product_id, ventor_id, unit_category_id, prod_category_id,desc_info,
+				product_code, ventor_prod_id, key_word, product_cname, easy_code, short_name,model_type,model,
+				basic_unit, purchase_unit, stock_unit, produce_unit, sale_unit, amount_precision,
+				high_stock, low_stock, safe_stock, sort_no, is_use, project_code, device_code,
+				qr_code, qr_code_url, del_flag, create_date, create_user_id, update_date, update_user_id,is_recommend, unit_price
+			)
+	 	VALUES( #{gid},#{ventorId},#{unitCategoryId},#{prodCategoryId},#{description},#{productCode},#{ventorProdId},#{keyWord},
+	 			#{productName},#{easyCode},#{shortName},#{modelType},#{modelName},#{basicUnit},#{purchaseUnit},#{stockUnit},#{produceUnit},
+	 			#{saleUnit},#{amountPrecision},#{highStock},#{lowStock},#{safeStock},#{sortNo},#{isUser},#{projectCode},
+	 			#{deviceCode},#{qrCode},#{qrCodeUrl},#{delFlag},#{createDate},#{createId},#{modifyDate},#{modifyId},#{isRecommend}, #{unitPrice ,jdbcType=DOUBLE}
+			   )
+ 	</insert>
+	
+	<insert id="addProdProperty"  parameterType="List">
+		insert into t_product_property 
+		values 
+		<foreach collection="list" item="item" index="index" separator="," >  
+        	(#{item.gid},#{item.prodId},#{item.propertyId},#{item.propertyValue})
+    	</foreach>
+	</insert>
+	
+	
+	<update id="updateProductInfoById" parameterType="com.ceway.materials.bean.product.Product">
+		update t_product set
+		    <if test="ventorId != null and ventorId != ''">ventor_id = #{ventorId},</if>	
+	        <if test="unitCategoryId != null and unitCategoryId != ''">unit_category_id = #{unitCategoryId},</if>	
+	        <if test="prodCategoryId != null and prodCategoryId != ''">prod_category_id = #{prodCategoryId},</if>	
+	        <if test="productCode != null and productCode != ''">product_code = #{productCode},</if>	
+	        <if test="keyWord != null and keyWord != ''">key_word = #{keyWord},</if>	
+	        <if test="productName != null and productName != ''">product_cname = #{productName},</if>	
+	        <if test="easyCode != null and easyCode != ''">easy_code = #{easyCode},</if>	
+	        <if test="basicUnit != null and basicUnit != ''">basic_unit = #{basicUnit},</if>	
+	        <if test="purchaseUnit != null and purchaseUnit != ''">purchase_unit = #{purchaseUnit},</if>	
+	        <if test="stockUnit != null and stockUnit != ''">stock_unit = #{stockUnit},</if>	
+	        <if test="produceUnit != null and produceUnit != ''">produce_unit = #{produceUnit},</if>	
+	        <if test="saleUnit != null and saleUnit != ''">sale_unit = #{saleUnit},</if>	
+	        <if test="amountPrecision != null and amountPrecision != ''">amount_precision = #{amountPrecision},</if>	
+	        <if test="highStock != null and highStock != ''">high_stock = #{highStock},</if>	
+	        <if test="lowStock != null and lowStock != ''">low_stock = #{lowStock},</if>	
+	        <if test="safeStock != null and safeStock != ''">safe_stock = #{safeStock},</if>	
+	        <if test="sortNo != null and sortNo != ''">sort_no = #{sortNo},</if>	
+	        <if test="isRecommend != -1"> is_recommend = #{isRecommend},</if>
+	        <if test="isUser != -1">is_use = #{isUser},</if>	
+	        <if test="unitPrice != null">unit_price = #{unitPrice},</if>
+	        <if test="projectCode != null and projectCode != ''">project_code = #{projectCode},</if>
+	        <if test="modelType != null and modelType != ''">model_type = #{modelType},</if>
+	        <if test="modelName != null and modelName != ''">model = #{modelName},</if>
+	        <if test="description != null and description != ''">desc_info = #{description},</if>
+	        update_date = #{modifyDate}
+	   where product_id = #{gid}
+	       and del_flag = 0 
+	</update>
+	
+	<update id="delProductInfo" parameterType="java.lang.String">
+		update t_product set del_flag = 1
+			where product_id = #{productId} 
+			and del_flag = 0
+	</update>
+	
+	<select id="findProductByPage"  parameterType="map" resultMap="productMap">
+		select tp.product_id, tp.ventor_id, tp.unit_category_id, tp.prod_category_id, tp.product_code
+			,tp.ventor_prod_id, tp.key_word, tp.product_cname, tp.easy_code, tp.short_name, tp.basic_unit
+			,tp.model_type,tp.purchase_unit, tp.stock_unit, tp.produce_unit, tp.sale_unit, tp.amount_precision, tp.high_stock
+			,tp.low_stock, tp.safe_stock, tp.sort_no, tp.is_use, tp.project_code, tp.device_code, tp.qr_code
+			,tp.qr_code_url, tp.del_flag, tp.create_date, tp.create_user_id, tp.update_date, tp.update_user_id
+			,tp.model, tp.model_type,tp.desc_info,tp.is_recommend, tp.unit_price
+			,tpf3.file_url as 3dUrl
+			,tpf4.file_url as 2dUrl
+			,tv.ventor_id , tv.ventor_name, tpf.product_file_id, tpf.file_url, tpp2.property, tpc.prod_category_id as category_id,tpc.category_name, IFNULL(ts.stock_num,0) as stock_num
+		from t_product tp
+		left join t_product_category tpc on tpc.prod_category_id = tp.prod_category_id
+		left join t_ventor tv on tp.ventor_id = tv.ventor_id
+		left join t_stock ts on tp.product_id = ts.stock_product_id
+		left join (
+					SELECT
+				tpf2.product_id, max(tpf2.product_file_id) as product_file_id, max(tpf2.file_url) as file_url
+			FROM
+				t_product_file tpf2
+			JOIN t_product_file_type tpft ON tpf2.product_file_type_id = tpft.product_file_type_id
+			WHERE
+				tpft.file_type_code = 'img'
+			group by tpf2.product_id
+		) tpf on tpf.product_id = tp.product_id
+		left join (
+					SELECT
+				tpf2.product_id, max(tpf2.product_file_id) as product_file_id, max(tpf2.file_url) as file_url
+			FROM
+				t_product_file tpf2
+			JOIN t_product_file_type tpft ON tpf2.product_file_type_id = tpft.product_file_type_id
+			WHERE
+				tpft.file_type_code = '3D'
+			group by tpf2.product_id
+		) tpf3 on tpf3.product_id = tp.product_id
+		left join (
+			select tpf2.* from t_product_file tpf2
+			join t_product_file_type tpft on tpf2.product_file_type_id = tpft.product_file_type_id
+			where tpft.file_type_code = '2D'
+		) tpf4 on tpf4.product_id = tp.product_id
+		left join (
+			select tpp.product_id , group_concat(tpp.property_value order by sort_no asc separator '*') as property 
+			from t_product_property tpp 
+			left join t_property tp on tpp.property_id = tp.property_id
+			group by tpp.product_id
+		) tpp2
+		on tpp2.product_id = tp.product_id
+		where tp.del_flag = 0
+		<if test="ventorId != null and ventorId.size > 0">
+			and tp.ventor_id in 
+			<foreach collection="ventorId" item="item" index="index" open="("  separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test="prodCategoryId != null">
+			and tp.prod_category_id = #{prodCategoryId}
+		</if>
+		<if test="propertyValue != null and propertyValue.size > 0">
+			<foreach collection="propertyValue"  index="key"  item="ent" >
+				 and EXISTS (select * from t_product_property tpp where tpp.product_id = tp.product_id and tpp.property_value in 
+					(${ent})
+				) 
+			</foreach>
+		</if>
+		<if test="fileType != null">
+			and EXISTS (select * from t_product_file tpf
+								join t_product_file_type tpft on tpf.product_file_type_id = tpft.product_file_type_id
+								where tpft.file_type_code = #{fileType}
+									and tpf.product_id = tp.product_id )
+		</if>
+		<if test="searchTxt != null and searchTxt != ''">
+			and (  tp.product_cname LIKE ('%${searchTxt}%') or tp.product_code like ('%${searchTxt}%') 
+				 or tv.ventor_name like ('%${searchTxt}%')
+				 or tpp2.property like ('%${searchTxt}%') 
+			)
+		</if>
+		<if test="selValue != null and selValue != ''"> 
+			and ( tp.model_type like ('%${selValue}%') 
+			or tp.model like ('%${selValue}%') 
+			or tp.product_code like ('%${selValue}%') 
+			or tp.product_cname like ('%${selValue}%') 
+			or tp.key_word like ('%${selValue}%') 
+			or tv.ventor_name like ('%${selValue}%') 
+		)</if>
+		<if test="categoryName != null and categoryName != ''">
+			and tpc.category_name = #{categoryName}
+		</if>
+		<if test="ids != null">
+			and tp.product_id in
+			<foreach collection="ids" item="item" index="index" open="("  separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test="categoryId != null">
+			and tpc.category_id = #{categoryId}
+		</if>
+		<if test="findType == 0">
+			and tp.is_use = 1
+		</if>
+		<if test="propOrders != null and  propOrders == 1">
+			order by tp.product_code  desc, create_date desc
+		</if>
+		<if test="propOrders != null and  propOrders == 0">
+			order by tp.product_code  asc, create_date desc
+		</if>
+		<if test="offset != null">
+			limit #{offset}, #{size}
+		</if>
+	</select>
+	
+	<select id="findProductByCount" resultType="java.lang.Integer" parameterType="map">
+	select count(tp.product_id)
+		from t_product tp
+		left join t_product_category tpc on tpc.prod_category_id = tp.prod_category_id
+		left join t_ventor tv on tp.ventor_id = tv.ventor_id
+		left join t_stock ts on tp.product_id = ts.stock_product_id
+		left join (
+					SELECT
+				tpf2.product_id, max(tpf2.product_file_id) as product_file_id, max(tpf2.file_url) as file_url
+			FROM
+				t_product_file tpf2
+			JOIN t_product_file_type tpft ON tpf2.product_file_type_id = tpft.product_file_type_id
+			WHERE
+				tpft.file_type_code = 'img'
+			group by tpf2.product_id
+		) tpf on tpf.product_id = tp.product_id
+		left join (
+					SELECT
+				tpf2.product_id, max(tpf2.product_file_id) as product_file_id, max(tpf2.file_url) as file_url
+			FROM
+				t_product_file tpf2
+			JOIN t_product_file_type tpft ON tpf2.product_file_type_id = tpft.product_file_type_id
+			WHERE
+				tpft.file_type_code = '3D'
+			group by tpf2.product_id
+		) tpf3 on tpf3.product_id = tp.product_id
+		left join (
+			select tpf2.* from t_product_file tpf2
+			join t_product_file_type tpft on tpf2.product_file_type_id = tpft.product_file_type_id
+			where tpft.file_type_code = '2D'
+		) tpf4 on tpf4.product_id = tp.product_id
+		left join (
+			select tpp.product_id , group_concat(tpp.property_value order by tp.sort_no ASC separator '*') as property 
+			from t_product_property tpp 
+			left join t_property tp on tpp.property_id = tp.property_id
+			group by tpp.product_id
+		) tpp2		
+		on tpp2.product_id = tp.product_id
+		where tp.del_flag = 0
+		<if test="ventorId != null and ventorId.size > 0">
+			and tp.ventor_id in 
+			<foreach collection="ventorId" item="item" index="index" open="("  separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test="prodCategoryId != null">
+			and tp.prod_category_id = #{prodCategoryId}
+		</if>
+		<if test="findType == 0">
+			and tp.is_use = 1
+		</if>
+		<if test="propertyValue != null and propertyValue.size > 0">
+			<foreach collection="propertyValue"  index="key"  item="ent" >
+				 and EXISTS (select * from t_product_property tpp where tpp.product_id = tp.product_id and tpp.property_value in 
+					(${ent})
+				) 
+			</foreach>
+		</if>
+		<if test="fileType != null">
+			and EXISTS (select * from t_product_file tpf
+								join t_product_file_type tpft on tpf.product_file_type_id = tpft.product_file_type_id
+								where tpft.file_type_code = #{fileType}
+									and tpf.product_id = tp.product_id )
+		</if>
+		<if test="searchTxt != null and searchTxt != ''">
+			and ( tp.product_cname LIKE ('%${searchTxt}%') or tp.product_code like ('%${searchTxt}%') 
+				or EXISTS(select * from t_ventor tv2 where tp.ventor_id = tv2.ventor_id and tv2.ventor_name like ('%${searchTxt}%')
+				or EXISTS(select * from t_product_property tpp2 where tpp2.product_id = tp.product_id and tpp2.property_value like ('%${searchTxt}%')))
+			)
+		</if>
+		<if test="selValue != null and selValue != ''"> 
+			and ( tp.model_type like ('%${selValue}%') 
+			or tp.model like ('%${selValue}%') 
+			or tp.product_code like ('%${selValue}%') 
+			or tp.product_cname like ('%${selValue}%') 
+			or tp.key_word like ('%${selValue}%') 
+			or tv.ventor_name like ('%${selValue}%') 
+		)</if>
+		<if test="categoryName != null and categoryName != ''">
+			and tpc.category_name = #{categoryName}
+		</if>
+		<if test="categoryId != null">
+			and tpc.category_id = #{categoryId}
+		</if>
+	</select>
+
+	<select id="findProdFileTypeInfo" resultMap="prodFileTypeMap">
+		select product_file_type_id,file_type_name,file_type_code from t_product_file_type
+			where del_flag = 0
+	</select>
+	
+	<insert id="addProdFileInfo" parameterType="com.ceway.materials.bean.product.ProductFile">
+		insert into t_product_file
+			(product_file_id,product_id,product_file_type_id,file_url,file_name,del_flag,create_date)
+		values
+			(#{gid},#{productId},#{prodFileTypeId},#{fileUrl},#{fileName},#{delFlag},#{createDate})
+	</insert>
+
+	
+	<select id="findIdByCode" resultMap="productMap">
+		SELECT
+            product_id,product_code
+        FROM
+            t_product
+        where 
+            product_code in
+            <foreach item="code" collection="list" separator="," open="(" close=")" index="index">
+                #{code}
+            </foreach>
+		and 
+		    del_flag = 0 
+	</select>
+	
+	<select id="find3DisExist" resultType="int" parameterType="java.lang.String">
+		select count(1) from t_product_file 
+			where product_id = #{productId} and file_url like '3D%'
+	</select>
+	
+	<select id="find2DisExist" resultType="int" parameterType="java.lang.String">
+		select count(1) from t_product_file 
+			where product_id = #{productId} and file_url like '2D%'
+	</select>
+	
+	<select id="findProductByIds"  resultMap="productMap"   parameterType="list">
+		select tp.product_id, tp.product_cname  from t_product tp
+		left join t_stock ts on ts.stock_product_id = tp.product_id
+		where tp.del_flag = 0
+			and tp.product_id in 
+			<foreach collection="list" item="item" index="index" open="("  separator="," close=")">
+				#{item}
+			</foreach>
+	</select>
+	
+	<select id="findVentProdIdById" parameterType="java.lang.String" resultType="java.lang.String">
+		select ventor_prod_id from t_product where product_id = #{productId}
+	</select>
+	
+	<!-- 批量插入导入的物料信息 -->
+	<insert id="insertProductList"  useGeneratedKeys="true" parameterType="java.util.List">
+		 INSERT INTO t_product ( 
+				product_id, ventor_id, unit_category_id, prod_category_id,desc_info,
+				product_code, ventor_prod_id, key_word, product_cname, easy_code, short_name,model_type,model,
+				basic_unit, purchase_unit, stock_unit, produce_unit, sale_unit, amount_precision,
+				high_stock, low_stock, safe_stock, sort_no, is_use, project_code, device_code,
+				qr_code, qr_code_url, del_flag, create_date, create_user_id, update_date, update_user_id,is_recommend, unit_price
+			)
+        VALUES
+        <foreach collection="list" item="product" separator="," index = "index">                           
+            (#{product.gid},#{product.ventorId},#{product.unitCategoryId},#{product.prodCategoryId},#{product.description},#{product.productCode},
+            	#{product.ventorProdId},#{product.keyWord},
+	 			#{product.productName},#{product.easyCode},#{product.shortName},#{product.modelType},#{product.modelName},
+	 			#{product.basicUnit},#{product.purchaseUnit},
+	 			#{product.stockUnit},#{product.produceUnit},
+	 			#{product.saleUnit},#{product.amountPrecision},#{product.highStock},#{product.lowStock},#{product.safeStock},
+	 			#{product.sortNo},#{product.isUser},#{product.projectCode},
+	 			#{product.deviceCode},#{product.qrCode},#{product.qrCodeUrl},#{product.delFlag},#{product.createDate},
+	 			#{product.createId},#{product.modifyDate},#{product.modifyId},#{product.isRecommend}, #{product.unitPrice ,jdbcType=DOUBLE}
+			  )
+        </foreach>
+	</insert>
+	
+   
+   <select id="getAllProducts" resultMap="exportProductMap">
+   		select tc.category_name, tp.product_code, tp.product_cname, tpp2.property, tp.basic_unit from t_product tp 
+			left join (
+				select tpp.product_id , group_concat(tpp.property_value order by sort_no asc separator '*') as property 
+				from t_product_property tpp 
+				left join t_property tp on tpp.property_id = tp.property_id
+				group by tpp.product_id
+					) tpp2
+			on tpp2.product_id = tp.product_id
+			left join t_product_category tpc  
+			on tpc.prod_category_id = tp.prod_category_id
+			left join t_category tc 
+			on tpc.category_id = tc.category_id
+			where tp.del_flag = 0
+   </select>
+   
+   <select id="findProductByCode" parameterType="String" resultMap="productMap">
+   		select * from t_product where del_flag = '0' and product_code = #{productCode}
+   </select>
+   
+   <select id="getproductFileByProduct" parameterType="String" resultType="String">
+   		select tpf.product_file_id from (select pf.product_file_id , max(pf.update_date) from t_product_file pf 
+		where pf.product_id = #{porductId} 
+		and pf.del_flag = 0 ) tpf  
+   </select>
+
+</mapper>

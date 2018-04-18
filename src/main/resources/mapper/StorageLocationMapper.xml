@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.ceway.materials.mapper.storage.StorageLocationMapper">
+	
+	<resultMap type="com.ceway.materials.bean.storage.StorageLocation" id="StorageLocaMap">
+		<id property="gid" column="storage_location_id" jdbcType="VARCHAR"/>
+		<result property="storageId" column="storage_id" jdbcType="VARCHAR" />
+		<result property="locationName" column="location_name" jdbcType="VARCHAR" />
+		<result property="locationCode" column="location_code" jdbcType="VARCHAR" />
+		<result property="delFlag" column="del_flag"  />
+		<result property="createDate" column="create_date" />
+	</resultMap>
+	
+	<select id="findStorageLocaInfo" resultMap="StorageLocaMap">
+		select storage_location_id,storage_id,location_name,location_code,del_flag,create_date
+		    from t_storage_location where del_flag = 0 
+	</select>
+	
+	<select id="findStorageLocaIsExist" resultType="java.lang.Integer" parameterType="java.lang.String">
+		select count(1) from t_storage_location
+		    where location_name = #{locationName}
+		    and del_flag = 0 
+	</select>
+	
+	<insert id="addStorageLocaInfo" parameterType="com.ceway.materials.bean.storage.StorageLocation">
+		insert into t_storage_location values(#{gid},#{storageId},#{locationName},#{locationCode},#{delFlag},#{createDate})
+	</insert>
+	
+</mapper>
